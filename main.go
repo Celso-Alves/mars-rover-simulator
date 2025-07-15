@@ -35,7 +35,7 @@ type Plateau struct {
 }
 
 func (p *Position) rotateLeft() {
-	p.dir = (p.dir + 3) % 4 // equivalent to -1 mod 4
+	p.dir = (p.dir + 3) % 4 // equivalent to -1 mod 4 tes
 }
 
 func (p *Position) rotateRight() {
