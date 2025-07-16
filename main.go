@@ -127,6 +127,8 @@ func main() {
 		}
 
 		fmt.Printf("%d %d %s\n", pos.x, pos.y, pos.dir.String())
+		// Move to the next rover
+
 		line++
 	}
 
