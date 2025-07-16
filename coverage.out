@@ -33,4 +33,4 @@ mars-rover-simulator/main.go:122.13,123.22 1 1
 mars-rover-simulator/main.go:124.13,125.29 1 1
 mars-rover-simulator/main.go:129.3,132.9 2 1
 mars-rover-simulator/main.go:135.2,135.38 1 1
-mars-rover-simulator/main.go:135.38,138.13 2 0
+mars-rover-simulator/main.go:135.38,136.13 1 0
