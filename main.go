@@ -15,6 +15,7 @@ const (
 	East
 	South
 	West
+	Invalid Direction = -1 // Explicit invalid value for Direction
 )
 
 var directions = []string{"N", "E", "S", "W"}
@@ -74,14 +75,16 @@ func parseDirection(s string) Direction {
 	case "W":
 		return West
 	default:
-		panic("invalid direction")
+		fmt.Fprintf(os.Stderr, "invalid direction: %s\n", s)
+		return Invalid // Use -1 as an explicit invalid value for Direction
+
 	}
 }
 
 func main() {
 	file, err := os.Open("input.txt")
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "error openning file: %s\n", err)
 	}
 	defer file.Close()
 
@@ -133,6 +136,7 @@ func main() {
 	}
 
 	if err := scanner.Err(); err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+
 	}
 }
