@@ -8,8 +8,6 @@ Mars Rover Simulator is a Go application that simulates the movement and control
 
 - Command-line interface for inputting rover instructions
 - Configurable grid size and initial rover position
-- Supports multiple rovers
-- Obstacle detection and avoidance
 - Detailed output of rover movements and final state
 
 ## Installation
