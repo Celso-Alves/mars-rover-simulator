@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">mars-rover-simulator/main.go (92.3%)</option>
+				<option value="file0">mars-rover-simulator/main.go (61.1%)</option>
 				
 				</select>
 			</div>
@@ -86,6 +86,7 @@ const (
         East
         South
         West
+        Invalid Direction = -1 // Explicit invalid value for Direction
 )
 
 var directions = []string{"N", "E", "S", "W"}
@@ -134,78 +135,153 @@ func (p *Position) moveForward(plateau Plateau) <span class="cov8" title="1">{
         }
 }
 
-func parseDirection(s string) Direction <span class="cov8" title="1">{
+func parseDirection(s string) (Direction, error) <span class="cov8" title="1">{
         switch s </span>{
         case "N":<span class="cov8" title="1">
-                return North</span>
+                return North, nil</span>
         case "E":<span class="cov8" title="1">
-                return East</span>
+                return East, nil</span>
         case "S":<span class="cov8" title="1">
-                return South</span>
+                return South, nil</span>
         case "W":<span class="cov8" title="1">
-                return West</span>
+                return West, nil</span>
         default:<span class="cov8" title="1">
-                panic("invalid direction")</span>
+                return Invalid, fmt.Errorf("invalid direction: %s", s)</span>
+
         }
 }
 
-func main() <span class="cov8" title="1">{
-        file, err := os.Open("input.txt")
-        if err != nil </span><span class="cov0" title="0">{
-                panic(err)</span>
+func parsePosition(line string, plateau Plateau) (Position, error) <span class="cov8" title="1">{
+        parts := strings.Fields(line)
+        if len(parts) != 3 </span><span class="cov8" title="1">{
+                return Position{}, fmt.Errorf("invalid position line: %s", line)
+        }</span>
+        <span class="cov8" title="1">x, err1 := strconv.Atoi(parts[0])
+        y, err2 := strconv.Atoi(parts[1])
+        dir, err3 := parseDirection(parts[2])
+        if err1 != nil || err2 != nil || err3 != nil </span><span class="cov8" title="1">{
+                return Position{}, fmt.Errorf("invalid position values: %s", line)
+        }</span>
+        <span class="cov8" title="1">if x &lt; 0 || x &gt; plateau.width || y &lt; 0 || y &gt; plateau.height </span><span class="cov8" title="1">{
+                return Position{}, fmt.Errorf("position out of plateau bounds: %s", line)
+        }</span>
+        <span class="cov8" title="1">return Position{x, y, dir}, nil</span>
+}
+
+func validateInstructions(instr string) error <span class="cov8" title="1">{
+        for _, c := range instr </span><span class="cov8" title="1">{
+                if c != 'L' &amp;&amp; c != 'R' &amp;&amp; c != 'M' </span><span class="cov8" title="1">{
+                        return fmt.Errorf("invalid instruction: %c", c)
+                }</span>
         }
-        <span class="cov8" title="1">defer file.Close()
+        <span class="cov8" title="1">return nil</span>
+}
+
+func parsePlateau(line string) (Plateau, error) <span class="cov8" title="1">{
+        parts := strings.Fields(line)
+        if len(parts) != 2 </span><span class="cov8" title="1">{
+                return Plateau{}, fmt.Errorf("invalid plateau line: %s", line)
+        }</span>
+        <span class="cov8" title="1">width, err1 := strconv.Atoi(parts[0])
+        height, err2 := strconv.Atoi(parts[1])
+        if err1 != nil || err2 != nil || width &lt; 0 || height &lt; 0 </span><span class="cov8" title="1">{
+                return Plateau{}, fmt.Errorf("invalid plateau size: %s", line)
+
+        }</span>
+        <span class="cov8" title="1">return Plateau{width, height}, nil</span>
+}
+
+func readPlateau(scanner *bufio.Scanner) (Plateau, error) <span class="cov8" title="1">{
+        for scanner.Scan() </span><span class="cov8" title="1">{
+                text := strings.TrimSpace(scanner.Text())
+                if text == "" </span><span class="cov8" title="1">{
+                        continue</span>
+                }
+                <span class="cov8" title="1">return parsePlateau(text)</span>
+        }
+        <span class="cov8" title="1">return Plateau{}, fmt.Errorf("missing plateau line")</span>
+}
+
+func readRoverPair(scanner *bufio.Scanner) (string, string, error) <span class="cov8" title="1">{
+        posLine := ""
+        for posLine == "" &amp;&amp; scanner.Scan() </span><span class="cov8" title="1">{
+                posLine = strings.TrimSpace(scanner.Text())
+        }</span>
+        <span class="cov8" title="1">if posLine == "" </span><span class="cov8" title="1">{
+                return "", "", fmt.Errorf("no more rover positions")
+        }</span>
+
+        <span class="cov8" title="1">instrLine := ""
+        for instrLine == "" &amp;&amp; scanner.Scan() </span><span class="cov8" title="1">{
+                instrLine = strings.TrimSpace(scanner.Text())
+        }</span>
+        <span class="cov8" title="1">if instrLine == "" </span><span class="cov8" title="1">{
+                return "", "", fmt.Errorf("missing instructions for rover after: %s", posLine)
+        }</span>
+        <span class="cov8" title="1">return posLine, instrLine, nil</span>
+}
+
+func processRover(posLine, instrLine string, plateau Plateau) error <span class="cov0" title="0">{
+        pos, err := parsePosition(posLine, plateau)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("rover position error: %v", err)
+        }</span>
+        <span class="cov0" title="0">if err := validateInstructions(instrLine); err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("instruction error: %v", err)
+        }</span>
+        <span class="cov0" title="0">for _, cmd := range instrLine </span><span class="cov0" title="0">{
+                switch cmd </span>{
+                case 'L':<span class="cov0" title="0">
+                        pos.rotateLeft()</span>
+                case 'R':<span class="cov0" title="0">
+                        pos.rotateRight()</span>
+                case 'M':<span class="cov0" title="0">
+                        pos.moveForward(plateau)</span>
+                }
+        }
+        <span class="cov0" title="0">fmt.Printf("%d %d %s\n", pos.x, pos.y, pos.dir.String())
+        return nil</span>
+}
+
+func main() <span class="cov0" title="0">{
+        inputFile := "input.txt"
+        if len(os.Args) &gt; 1 &amp;&amp; os.Args[1] != "" </span><span class="cov0" title="0">{
+                inputFile = os.Args[1]
+        }</span>
+
+        <span class="cov0" title="0">file, err := os.Open(inputFile)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintf(os.Stderr, "Error: could not open file '%s'.\nUsage: %s [inputfile.txt]\n", inputFile, os.Args[0])
+                os.Exit(1)
+        }</span>
+        <span class="cov0" title="0">defer file.Close()
 
         scanner := bufio.NewScanner(file)
-        line := 0
-        var plateau Plateau
 
-        for scanner.Scan() </span><span class="cov8" title="1">{
-                text := scanner.Text()
-                if text == "" </span><span class="cov0" title="0">{
+        plateau, err := readPlateau(scanner)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintf(os.Stderr, "Plateau error: %v\n", err)
+                os.Exit(1)
+        }</span>
+
+        <span class="cov0" title="0">for </span><span class="cov0" title="0">{
+                posLine, instrLine, err := readRoverPair(scanner)
+                if err != nil </span><span class="cov0" title="0">{
+                        if err.Error() != "no more rover positions" </span><span class="cov0" title="0">{
+                                fmt.Fprintf(os.Stderr, "%v\n", err)
+                        }</span>
+                        <span class="cov0" title="0">break</span>
+                }
+                <span class="cov0" title="0">if err := processRover(posLine, instrLine, plateau); err != nil </span><span class="cov0" title="0">{
+                        fmt.Fprintf(os.Stderr, "%v\n", err)
                         continue</span>
                 }
-
-                <span class="cov8" title="1">if line == 0 </span><span class="cov8" title="1">{
-                        parts := strings.Split(text, " ")
-                        plateau.width, _ = strconv.Atoi(parts[0])
-                        plateau.height, _ = strconv.Atoi(parts[1])
-                        line++
-                        continue</span>
-                }
-
-                // Rover position
-                <span class="cov8" title="1">parts := strings.Split(text, " ")
-                x, _ := strconv.Atoi(parts[0])
-                y, _ := strconv.Atoi(parts[1])
-                dir := parseDirection(parts[2])
-                pos := Position{x, y, dir}
-
-                // Next line is instructions
-                if !scanner.Scan() </span><span class="cov0" title="0">{
-                        break</span>
-                }
-                <span class="cov8" title="1">instructions := scanner.Text()
-                for _, cmd := range instructions </span><span class="cov8" title="1">{
-                        switch cmd </span>{
-                        case 'L':<span class="cov8" title="1">
-                                pos.rotateLeft()</span>
-                        case 'R':<span class="cov8" title="1">
-                                pos.rotateRight()</span>
-                        case 'M':<span class="cov8" title="1">
-                                pos.moveForward(plateau)</span>
-                        }
-                }
-
-                <span class="cov8" title="1">fmt.Printf("%d %d %s\n", pos.x, pos.y, pos.dir.String())
-                // Move to the next rover
-
-                line++</span>
         }
 
-        <span class="cov8" title="1">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
-                panic(err)</span>
-        }
+        <span class="cov0" title="0">if err := scanner.Err(); err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintf(os.Stderr, "Error reading file: %s\n", err)
+                os.Exit(1)
+        }</span>
 }
 </pre>
 		

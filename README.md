@@ -8,15 +8,13 @@ Mars Rover Simulator is a Go application that simulates the movement and control
 
 - Command-line interface for inputting rover instructions
 - Configurable grid size and initial rover position
-- Supports multiple rovers
-- Obstacle detection and avoidance
 - Detailed output of rover movements and final state
 
 ## Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/celsoadsjr/mars-rover-simulator.git
+   git clone https://github.com/Celso-Alves/mars-rover-simulator.git
    ```
 2. Navigate to the project directory:
    ```bash
@@ -24,7 +22,7 @@ Mars Rover Simulator is a Go application that simulates the movement and control
    ```
 3. Build the project:
    ```bash
-   go build
+   make build
    ```
 
 ## Usage
@@ -32,7 +30,7 @@ Mars Rover Simulator is a Go application that simulates the movement and control
 Run the simulator with a configuration file or interactively:
 
 ```bash
-./mars-rover-simulator
+make run
 ```
 
 Example input:
